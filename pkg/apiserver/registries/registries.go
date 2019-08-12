@@ -24,6 +24,8 @@ import (
 
 	"kubesphere.io/kubesphere/pkg/errors"
 	"kubesphere.io/kubesphere/pkg/models/registries"
+
+	log "github.com/golang/glog"
 )
 
 func RegistryVerify(request *restful.Request, response *restful.Response) {
@@ -45,4 +47,26 @@ func RegistryVerify(request *restful.Request, response *restful.Response) {
 	}
 
 	response.WriteAsJson(errors.None)
+}
+
+func RegistryImageBlob(request *restful.Request, response *restful.Response) {
+	requestData := registries.ImageNameAndSecret{}
+
+	err := request.ReadEntity(&requestData)
+
+	if err != nil {
+		log.Error(err)
+		response.WriteHeaderAndEntity(http.StatusInternalServerError, errors.Wrap(err))
+		return
+	}
+
+	imageDetail, err := registries.RegistryImageBlob(requestData)
+
+	if err != nil {
+		log.Error(err)
+		response.WriteHeaderAndEntity(http.StatusInternalServerError, errors.Wrap(err))
+		return
+	}
+
+	response.WriteAsJson(imageDetail)
 }

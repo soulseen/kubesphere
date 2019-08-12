@@ -217,6 +217,15 @@ func addWebService(c *restful.Container) error {
 		Reads(registriesmodel.AuthInfo{}).
 		Returns(http.StatusOK, ok, errors.Error{}))
 
+	webservice.Route(webservice.POST("registry/blob").
+		To(registries.RegistryImageBlob).
+		Metadata(restfulspec.KeyOpenAPITags, []string{constants.RegistryTag}).
+		Doc("Retrieve the blob from the registry identified").
+		Reads(registriesmodel.ImageNameAndSecret{}).
+		Writes(registriesmodel.ImageBlobInfo{}).
+		Returns(http.StatusOK, ok, registriesmodel.ImageBlobInfo{}),
+	)
+
 	webservice.Route(webservice.POST("git/verify").
 		To(git.GitReadVerify).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.VerificationTag}).
