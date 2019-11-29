@@ -26,9 +26,8 @@ import (
 	"github.com/emicklei/go-restful"
 	"io"
 	"io/ioutil"
-	"kubesphere.io/kubesphere/pkg/models"
-
 	"k8s.io/klog"
+	"kubesphere.io/kubesphere/pkg/models"
 	cs "kubesphere.io/kubesphere/pkg/simple/client"
 	"net/http"
 	"net/url"

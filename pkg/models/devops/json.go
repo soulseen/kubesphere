@@ -1145,3 +1145,20 @@ type Input struct {
 	Parameters []interface{} `json:"parameters,omitempty" description:"the parameters of check action"`
 	Submitter  interface{}   `json:"submitter,omitempty" description:"check submitter"`
 }
+
+type EmailServerConfig struct {
+	Protocol      string `json:"protocol,omitempty" description:"email server protocol"`
+	EmailHost     string `json:"email_host,omitempty" description:"SMTP Server Address"`
+	Port          int    `json:"port,omitempty" description:"SMTP server port"`
+	DisplaySender string `json:"display_sender,omitempty" description:"notification display sender"`
+	Email         string `json:"email,omitempty" description:"sender nickname"`
+	Password      string `json:"password,omitempty" description:"SMTP password"`
+	SslEnable     bool   `json:"ssl_enable,omitempty" description:"is ssl enabled or not"`
+	FromEmailAddr string `json:"from_email_addr,omitempty" description:"sender mail address"`
+	Submit        string `json:"submit,omitempty" description:"the action for script submit"`
+}
+
+type ExecutesResult struct {
+	Success bool   `json:"success,omitempty" description:"is execute successfully or not"`
+	Message string `json:"message" description:"execute result message"`
+}

@@ -810,6 +810,15 @@ The last one is encrypted info, such as the password of the username-password ty
 		Returns(http.StatusOK, RespOK, []devops.NodesDetail{}).
 		Writes(devops.NodesDetail{}))
 
+	// set up mail server in devops
+	webservice.Route(webservice.POST("/emailserver").
+		To(devopsapi.SetupMailServer).
+		Metadata(restfulspec.KeyOpenAPITags, []string{constants.DevOpsEmailTag}).
+		Doc("Set up Email server in devops").
+		Reads(devops.EmailServerConfig{}).
+		Returns(http.StatusOK, RespOK, []devops.ExecutesResult{}).
+		Writes(devops.ExecutesResult{}))
+
 	c.Add(webservice)
 
 	return nil

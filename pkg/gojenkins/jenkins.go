@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -1061,6 +1063,54 @@ func (j *Jenkins) GetQueueItem(number int64) (*QueueItemResponse, error) {
 		return nil, errors.New(strconv.Itoa(response.StatusCode))
 	}
 	return responseItem, nil
+}
+
+// Executes arbitrary script for administration/trouble-shooting/diagnostics.
+func (j *Jenkins) ExecutesScript(script, submit string) (*string, error) {
+	formdata := make(map[string]string)
+
+	formdata["script"] = script
+	json, err := json.Marshal(formdata)
+	if err != nil {
+		return nil, err
+	}
+	formdata["json"] = string(json)
+	crumbData, err := j.Requester.GetCrumb()
+	if err != nil {
+		return nil, err
+	}
+	formdata["Jenkins-Crumb"] = crumbData["crumb"]
+	formdata["Submit"] = submit
+
+	responseStruct := new(string)
+
+	resp, err := j.Requester.PostForm("/script", nil, responseStruct, formdata)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(strconv.Itoa(resp.StatusCode))
+	}
+
+	executesMessage, err := ParseExecutesResultWithhtml(strings.NewReader(*responseStruct))
+	if err != nil {
+		return nil, err
+	}
+
+	return executesMessage, nil
+}
+
+func ParseExecutesResultWithhtml(html io.Reader) (*string, error) {
+
+	doc, err := goquery.NewDocumentFromReader(html)
+	if err != nil {
+		return nil, err
+	}
+
+	res := doc.Find("pre").Last().Text()
+
+	return &res, nil
 }
 
 // Creates a new Jenkins Instance

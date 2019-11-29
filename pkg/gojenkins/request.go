@@ -60,17 +60,26 @@ type Requester struct {
 	connControl chan struct{}
 }
 
-func (r *Requester) SetCrumb(ar *APIRequest) error {
+func (r *Requester) GetCrumb() (map[string]string, error) {
 	crumbData := map[string]string{}
 	response, err := r.GetJSON("/crumbIssuer/api/json", &crumbData, nil)
 	if err != nil {
 		jenkinsError, ok := err.(*ErrorResponse)
 		if ok && jenkinsError.Response.StatusCode == http.StatusNotFound {
-			return nil
+			return nil, err
 		}
-		return err
+		return nil, err
 	}
 	if response.StatusCode == 200 && crumbData["crumbRequestField"] != "" {
+		return crumbData, nil
+	}
+
+	return nil, nil
+}
+
+func (r *Requester) SetCrumb(ar *APIRequest) error {
+	crumbData, err := r.GetCrumb()
+	if err == nil {
 		ar.SetHeader(crumbData["crumbRequestField"], crumbData["crumb"])
 	}
 
@@ -84,7 +93,7 @@ func (r *Requester) PostJSON(endpoint string, payload io.Reader, responseStruct 
 	}
 	ar.SetHeader("Content-Type", "application/x-www-form-urlencoded")
 	ar.Suffix = "api/json"
-	return r.Do(ar, &responseStruct, querystring)
+	return r.Do(ar, responseStruct, querystring)
 }
 
 func (r *Requester) Post(endpoint string, payload io.Reader, responseStruct interface{}, querystring map[string]string) (*http.Response, error) {
@@ -94,7 +103,7 @@ func (r *Requester) Post(endpoint string, payload io.Reader, responseStruct inte
 	}
 	ar.SetHeader("Content-Type", "application/x-www-form-urlencoded")
 	ar.Suffix = ""
-	return r.Do(ar, &responseStruct, querystring)
+	return r.Do(ar, responseStruct, querystring)
 }
 func (r *Requester) PostForm(endpoint string, payload io.Reader, responseStruct interface{}, formString map[string]string) (*http.Response, error) {
 	ar := NewAPIRequest("POST", endpoint, payload)
@@ -103,7 +112,8 @@ func (r *Requester) PostForm(endpoint string, payload io.Reader, responseStruct 
 	}
 	ar.SetHeader("Content-Type", "application/x-www-form-urlencoded")
 	ar.Suffix = ""
-	return r.DoPostForm(ar, &responseStruct, formString)
+
+	return r.DoPostForm(ar, responseStruct, formString)
 }
 
 func (r *Requester) PostFiles(endpoint string, payload io.Reader, responseStruct interface{}, querystring map[string]string, files []string) (*http.Response, error) {
@@ -111,7 +121,7 @@ func (r *Requester) PostFiles(endpoint string, payload io.Reader, responseStruct
 	if err := r.SetCrumb(ar); err != nil {
 		return nil, err
 	}
-	return r.Do(ar, &responseStruct, querystring, files)
+	return r.Do(ar, responseStruct, querystring, files)
 }
 
 func (r *Requester) PostXML(endpoint string, xml string, responseStruct interface{}, querystring map[string]string) (*http.Response, error) {
@@ -122,14 +132,14 @@ func (r *Requester) PostXML(endpoint string, xml string, responseStruct interfac
 	}
 	ar.SetHeader("Content-Type", "application/xml;charset=utf-8")
 	ar.Suffix = ""
-	return r.Do(ar, &responseStruct, querystring)
+	return r.Do(ar, responseStruct, querystring)
 }
 
 func (r *Requester) GetJSON(endpoint string, responseStruct interface{}, query map[string]string) (*http.Response, error) {
 	ar := NewAPIRequest("GET", endpoint, nil)
 	ar.SetHeader("Content-Type", "application/json")
 	ar.Suffix = "api/json"
-	return r.Do(ar, &responseStruct, query)
+	return r.Do(ar, responseStruct, query)
 }
 
 func (r *Requester) GetXML(endpoint string, responseStruct interface{}, query map[string]string) (*http.Response, error) {
@@ -401,7 +411,7 @@ func (r *Requester) DoPostForm(ar *APIRequest, responseStruct interface{}, form 
 		if errorText != "" {
 			return nil, errors.New(errorText)
 		}
-		err := CheckResponse(response)
+		err = CheckResponse(response)
 		if err != nil {
 			return nil, err
 		}
