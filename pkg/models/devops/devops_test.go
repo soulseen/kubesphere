@@ -54,7 +54,7 @@ func TestGetNodesDetail(t *testing.T) {
 	}
 
 	for _, v := range nodesDetails {
-		if v.Steps[0].ID == "" {
+		if v.Steps[0].ID != "1" {
 			t.Fatalf("Can not get any step.")
 		}
 	}
@@ -106,7 +106,7 @@ func TestGetBranchNodesDetail(t *testing.T) {
 	}
 
 	for _, v := range nodesDetails {
-		if v.Steps[0].ID == "" {
+		if v.Steps[0].ID != "1" {
 			t.Fatalf("Can not get any step.")
 		}
 	}
